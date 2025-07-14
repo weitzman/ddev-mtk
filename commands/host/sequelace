@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+#ddev-generated
+## Description: Open Sequel Ace with the mtk database.
+## Usage: sequelace
+## Example: "ddev sequelace"
+## OSTypes: darwin
+## HostBinaryExists: "/Applications/Sequel Ace.app"
+
+open mysql://${MTK_USERNAME}:${MTK_PASSWORD}@127.0.0.1:${DDEV_MTK_HOST_PORT:-3206}/${MTK_DATABASE} -a '/Applications/Sequel Ace.app/Contents/MacOS/Sequel Ace'

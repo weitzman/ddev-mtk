@@ -1,16 +1,19 @@
 #ddev-generated
-# Simple template to demonstrate mtk
 services:
   mtk:
+    # Name of container using standard ddev convention
     container_name: ddev-${DDEV_SITENAME}-mtk
-    image: ${MTK_DOCKER_IMAGE:-busybox:stable}
-    command: tail -f /dev/null
-    restart: "no"
-    # These labels ensure this service is discoverable by DDEV.
+    # See https://mtk.skpr.io/docs/database-image/#build-a-docker-image
+    image: ${DDEV_MTK_DOCKER_IMAGE:-mariadb:lts-ubi9}
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+    ports:
+      - ${DDEV_MTK_HOST_PORT:-3206}:3306
+    # These labels ensure this service is discoverable by ddev.
     labels:
       com.ddev.site-name: ${DDEV_SITENAME}
-      com.ddev.approot: ${DDEV_APPROOT}
-
+      com.ddev.approot: $DDEV_APPROOT
     volumes:
-      - ".:/mnt/ddev_config"
-      - "ddev-global-cache:/mnt/ddev-global-cache"
+      - mtk:/var/lib/mysql
+volumes:
+  mtk:
