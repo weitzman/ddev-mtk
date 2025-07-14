@@ -34,10 +34,10 @@ Run `ddev exec mtk table list db`. You should see a list of table names. This ve
 1. Use the `dump.sql` from above when building and pushing your database image to a Docker registry (e.g. [Docker Hub](https://hub.docker.com/)). See the tutorial at https://mtk.skpr.io/docs/database-image. Do this on the host, not in the container. Remember to push to a _private_ Docker repository.
 1. Now that you have published a DB image with your data inside, configure your site to use it.
   1. Edit `.ddev/.env.mtk.web` as follows:
-    1. Remove the `#ddev-generated` line at the top.
-    1. Set `MTK_HOSTNAME=mtk`
-    1. Edit `MTK_USER`, `MTK_PASSWORD`, `MTK_DATABASE` to match whatever your published expects.
-    1. Set `DDEV_MTK_DOCKER_IMAGE` to the image and tag that you published above. For example, `example/db:latest`
+      - Remove the `#ddev-generated` line at the top.
+      - Set `MTK_HOSTNAME=mtk`
+      - Edit `MTK_USER`, `MTK_PASSWORD`, `MTK_DATABASE` to match whatever your published expects.
+      - Set `DDEV_MTK_DOCKER_IMAGE` to the image and tag that you published above. For example, `example/db:latest`
   1. Edit Drupal's settings.php with code like below so that Drupal connects to the `mtk` service instead of the typical `db` service.
       ```php
       if (getenv('IS_DDEV_PROJECT') == 'true') {
@@ -48,7 +48,7 @@ Run `ddev exec mtk table list db`. You should see a list of table names. This ve
       }
       ```
   1. `ddev restart`. Your site is now using the `mtk` service instead of `db`. Make sure the site works by running `ddev drush st` (look for _Drupal bootstrap: Successful_). Run `ddev launch` and to verify that a browser request succeeds.
-1. Optional. Omit the standard `db` service since your site no longer uses it. `ddev config --omit-containers db`
+1. _Optional_. Omit the standard `db` service since your site no longer uses it. `ddev config --omit-containers db`
 1. Commit the `.ddev` directory and settings.php change to version control so your teammates start using the `mtk` service.
 1. Set up a CI job to refresh your database image on a weekly or nightly basis. The job should push to the same tag every time (e.g. `latest`). 
 
