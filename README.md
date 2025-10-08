@@ -33,11 +33,16 @@ Run `ddev exec mtk table list db`. You should see a list of table names. This ve
 1. Run `ddev exec mtk dump db > dump.sql` to generate a SQL dump file.
 1. Use the `dump.sql` from above when building and pushing your database image to a Docker registry (e.g. [Docker Hub](https://hub.docker.com/)). See the tutorial at https://mtk.skpr.io/docs/database-image. Do this on the host, not in the container. Remember to push to a _private_ Docker repository.
 1. Now that you have published a DB image with your data inside, configure your site to use it.
-  1. Edit `.ddev/.env.mtk.web` as follows:
-      - Remove the `#ddev-generated` line at the top.
-      - Set `MTK_HOSTNAME=mtk`
-      - Edit `MTK_USER`, `MTK_PASSWORD`, `MTK_DATABASE` to match whatever your published expects.
-      - Set `DDEV_MTK_DOCKER_IMAGE` to the image and tag that you published above. For example, `example/db:latest`
+  1. Append the following to `.ddev/.env.web` (create that file if it doesn't exist). Customize as desired. This defines environment variables that are used by `mtk` and by `.ddev/settings.ddev-mtk.php`:
+      ```
+MTK_HOSTNAME=mtk # The Docker service provided by this add-on
+MTK_DATABASE=db  # The default DB that ships with the stock MySql Docker image
+MTK_USERNAME=db  # The default user that ships with the stock MySql Docker image
+MTK_PASSWORD=db
+DDEV_MTK_DOCKER_IMAGE= # The image and tag that you published above.
+DDEV_MTK_HOST_IP=
+DDEV_MTK_HOST_PORT=
+     ```
   1. Edit Drupal's settings.php with code like below so that Drupal connects to the `mtk` service instead of the typical `db` service.
       ```php
       if (getenv('IS_DDEV_PROJECT') == 'true') {
