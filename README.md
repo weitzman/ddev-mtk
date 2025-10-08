@@ -27,28 +27,34 @@ Notice that you now have an `mtk` service listed in `ddev describe`. At first, t
 
 Run `ddev exec mtk table list db`. You should see a list of table names. This verifies that `mtk` is installed in the web service. 
 
-## Configuration
+## Usage
 
-1. Create a `mtk.yml` file in the root of your project. It can be empty to start. Eventually, populate it as per https://mtk.skpr.io/docs/tutorial#configuration-file, for a slimmed and sanitized database.
-1. Run `ddev exec mtk dump db > dump.sql` to generate a SQL dump file.
-1. Use the `dump.sql` from above when building and pushing your database image to a Docker registry (e.g. [Docker Hub](https://hub.docker.com/)). See the tutorial at https://mtk.skpr.io/docs/database-image. Do this on the host, not in the container. Remember to push to a _private_ Docker repository.
-1. Now that you have published a DB image with your data inside, configure your site to use it.
-  1. Edit `.ddev/.env.mtk.web` as follows:
-      - Remove the `#ddev-generated` line at the top.
-      - Set `MTK_HOSTNAME=mtk`
-      - Edit `MTK_USER`, `MTK_PASSWORD`, `MTK_DATABASE` to match whatever your published expects.
-      - Set `DDEV_MTK_DOCKER_IMAGE` to the image and tag that you published above. For example, `example/db:latest`
-  1. Edit Drupal's settings.php with code like below so that Drupal connects to the `mtk` service instead of the typical `db` service.
-      ```php
-      if (getenv('IS_DDEV_PROJECT') == 'true') {
-      $file_mtk = getenv('DDEV_COMPOSER_ROOT') . '/.ddev/settings.ddev-mtk.php';
-      if (file_exists($file_mtk)) {
-        include $file_mtk;
+1. Generate a SQL Dump file. There are two ways to do this:
+   1. **Use Drush**. Run `ddev drush sql:dump > dump.sql` to generate a SQL dump file. 
+   1. **Use MTK**. Create a `mtk.yml` file in the root of your project. It can be empty to start. Eventually, populate it as per https://mtk.skpr.io/docs/tutorial#configuration-file, for a slimmed and sanitized database. Run `ddev exec mtk dump db > dump.sql` to generate a SQL dump file.
+1. Use the `dump.sql` from above when building and pushing your database image to a container registry (e.g. [Docker Hub](https://hub.docker.com/)). See the tutorial at https://mtk.skpr.io/docs/database-image. Do this from outside of your DDEV project. Remember to push to a _private_ container registry.
+1. Configure DDEV to use the published DB image with your data inside.
+   - Append the following to `.ddev/.env.web` (create that file if it doesn't exist). Customize to so the creds and DB name match whats in the image you've built. These environment variables are used by `mtk` and by `.ddev/settings.ddev-mtk.php` (see next step):
+    ```
+    MTK_HOSTNAME=mtk # The Docker service provided by this add-on
+    MTK_DATABASE=local  # The default DB that ships with the stock MySql Docker image
+    MTK_USERNAME=local  # The default user that ships with the stock MySql Docker image
+    MTK_PASSWORD=local
+    DDEV_MTK_DOCKER_IMAGE= # The image and tag that you published above.
+    DDEV_MTK_HOST_PORT=3206
+    ```
+
+   - Edit Drupal's settings.php with code like below so that Drupal connects to the `mtk` service instead of the typical `db` service. Put this under the usual settings.php clause from DDEV.
+       ```php
+       if (getenv('IS_DDEV_PROJECT') == 'true') {
+       $file_mtk = getenv('DDEV_COMPOSER_ROOT') . '/.ddev/settings.ddev-mtk.php';
+       if (file_exists($file_mtk)) {
+         include $file_mtk;
+        }
        }
-      }
-      ```
-  1. `ddev restart`. Your site is now using the `mtk` service instead of `db`. Make sure the site works by running `ddev drush st` (look for _Drupal bootstrap: Successful_). Run `ddev launch` and to verify that a browser request succeeds.
-1. _Optional_. Omit the standard `db` service since your site no longer uses it. `ddev config --omit-containers db`
+       ```
+1. `ddev restart`. Your site is now using the `mtk` service instead of `db`. Make sure the site works by running `ddev drush st` (look for _Drupal bootstrap: Successful_). Run `ddev launch` and to verify that a browser request succeeds.
+1. _Optional_. Omit the standard `db` service since your site no longer uses it. `ddev config --omit-containers db && ddev restart`
 1. Commit the `.ddev` directory and settings.php change to version control so your teammates start using the `mtk` service.
 1. Set up a CI job to refresh your database image on a weekly or nightly basis. The job should push to the same tag every time (e.g. `latest`). 
 
@@ -65,11 +71,11 @@ Consider speeding up other DB consumers by using the image you published above. 
 | `ddev sequelace` | Open your site's DB in the Sequel Ace GUI application    |
 | `ddev tableplus` | Open your site's DB in the TablePlus GUI application     |
 
-## Limitations
+## Workarounds
 
 - Non-functional DDEV commands: 
   - `export-db`, `import-db`. Use Drush sql commands instead.
-  - `snapshot`. Not usually needed since you can revert your Docker image.
+  - `snapshot`. Not usually needed since you can revert your `mtk` Docker service.
 
 ## Credits
 

@@ -7,6 +7,5 @@ project_files:
   - commands/host/tableplus
   - web-build/Dockerfile.mtk
   - settings.ddev-mtk.php
-  - .env.mtk.web
 
 ddev_version_constraint: '>= v1.24.3'

@@ -1,5 +1,5 @@
-#ddev-generated
 <?php
+#ddev-generated
 
 /**
  * This file is part of the DDEV MKT add-on.
