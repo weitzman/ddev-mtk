@@ -7,4 +7,8 @@
 ## OSTypes: darwin
 ## HostBinaryExists: "/Applications/Sequel Ace.app"
 
+MTK_USERNAME=$(ddev dotenv get .ddev/.env.web --mtk-username)
+MTK_PASSWORD=$(ddev dotenv get .ddev/.env.web --mtk-password)
+DDEV_MTK_HOST_PORT=$(ddev dotenv get .ddev/.env.web --ddev-mtk-host-port)
+MTK_DATABASE=$(ddev dotenv get .ddev/.env.web --mtk-database)
 open mysql://${MTK_USERNAME}:${MTK_PASSWORD}@127.0.0.1:${DDEV_MTK_HOST_PORT:-3206}/${MTK_DATABASE} -a '/Applications/Sequel Ace.app/Contents/MacOS/Sequel Ace'
