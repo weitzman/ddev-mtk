@@ -5,4 +5,7 @@
 ## Usage: pulldb
 ## Example: "ddev pulldb"
 
+# Possible alternative - needs to be made generic. Note underscore toward end.
+# docker stop ddev-help-mtk && docker rm -v ddev-help-mtk && docker volume rm ddev-help_mtk && ddev start
+
 ddev delete --omit-snapshot -y && ~/.ddev/bin/docker-compose -f .ddev/.ddev-docker-compose-full.yaml down --rmi all && ddev start
