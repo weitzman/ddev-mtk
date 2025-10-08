@@ -32,28 +32,29 @@ Run `ddev exec mtk table list db`. You should see a list of table names. This ve
 1. Generate a SQL Dump file. There are two ways to do this:
    1. **Use Drush**. Run `ddev drush sql:dump > dump.sql` to generate a SQL dump file. 
    1. **Use MTK**. Create a `mtk.yml` file in the root of your project. It can be empty to start. Eventually, populate it as per https://mtk.skpr.io/docs/tutorial#configuration-file, for a slimmed and sanitized database. Run `ddev exec mtk dump db > dump.sql` to generate a SQL dump file.
-1. Use the `dump.sql` from above when building and pushing your database image to a container registry (e.g. [Docker Hub](https://hub.docker.com/)). See the tutorial at https://mtk.skpr.io/docs/database-image. Do the docker build+push from outside of your DDEV project. Remember to push to a _private_ container registry.
-1. Now that you have published a DB image with your data inside, configure DDEV to use it.
-1. Append the following to `.ddev/.env.web` (create that file if it doesn't exist). Customize to so the creds and DB name match whats in the image you've built. These environment variables are used by `mtk` and by `.ddev/settings.ddev-mtk.php` (see next step):
-```
-MTK_HOSTNAME=mtk # The Docker service provided by this add-on
-MTK_DATABASE=local  # The default DB that ships with the stock MySql Docker image
-MTK_USERNAME=local  # The default user that ships with the stock MySql Docker image
-MTK_PASSWORD=local
-DDEV_MTK_DOCKER_IMAGE= # The image and tag that you published above.
-DDEV_MTK_HOST_PORT=3206
-```
-1. Edit Drupal's settings.php with code like below so that Drupal connects to the `mtk` service instead of the typical `db` service. Put this under the usual settings.php clause from DDEV.
-    ```php
-    if (getenv('IS_DDEV_PROJECT') == 'true') {
-    $file_mtk = getenv('DDEV_COMPOSER_ROOT') . '/.ddev/settings.ddev-mtk.php';
-    if (file_exists($file_mtk)) {
-      include $file_mtk;
-     }
-    }
+1. Use the `dump.sql` from above when building and pushing your database image to a container registry (e.g. [Docker Hub](https://hub.docker.com/)). See the tutorial at https://mtk.skpr.io/docs/database-image. Do this from outside of your DDEV project. Remember to push to a _private_ container registry.
+1. Configure DDEV to use the published DB image with your data inside.
+   - Append the following to `.ddev/.env.web` (create that file if it doesn't exist). Customize to so the creds and DB name match whats in the image you've built. These environment variables are used by `mtk` and by `.ddev/settings.ddev-mtk.php` (see next step):
     ```
+    MTK_HOSTNAME=mtk # The Docker service provided by this add-on
+    MTK_DATABASE=local  # The default DB that ships with the stock MySql Docker image
+    MTK_USERNAME=local  # The default user that ships with the stock MySql Docker image
+    MTK_PASSWORD=local
+    DDEV_MTK_DOCKER_IMAGE= # The image and tag that you published above.
+    DDEV_MTK_HOST_PORT=3206
+    ```
+
+   - Edit Drupal's settings.php with code like below so that Drupal connects to the `mtk` service instead of the typical `db` service. Put this under the usual settings.php clause from DDEV.
+       ```php
+       if (getenv('IS_DDEV_PROJECT') == 'true') {
+       $file_mtk = getenv('DDEV_COMPOSER_ROOT') . '/.ddev/settings.ddev-mtk.php';
+       if (file_exists($file_mtk)) {
+         include $file_mtk;
+        }
+       }
+       ```
 1. `ddev restart`. Your site is now using the `mtk` service instead of `db`. Make sure the site works by running `ddev drush st` (look for _Drupal bootstrap: Successful_). Run `ddev launch` and to verify that a browser request succeeds.
-1. _Optional_. Omit the standard `db` service since your site no longer uses it. `ddev config --omit-containers db`
+1. _Optional_. Omit the standard `db` service since your site no longer uses it. `ddev config --omit-containers db && ddev restart`
 1. Commit the `.ddev` directory and settings.php change to version control so your teammates start using the `mtk` service.
 1. Set up a CI job to refresh your database image on a weekly or nightly basis. The job should push to the same tag every time (e.g. `latest`). 
 
