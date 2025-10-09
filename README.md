@@ -45,7 +45,6 @@ Run `ddev exec mtk table list db`. You should see a list of table names. This ve
     DDEV_MTK_DOCKER_IMAGE= # The image and tag that you published above.
     DDEV_MTK_HOST_PORT=3206
     ```
-   - 
    - Edit Drupal's settings.php with code like below so that Drupal connects to the `mtk` service instead of the typical `db` service. Put this under the usual settings.php clause from DDEV.
        ```php
        if (getenv('IS_DDEV_PROJECT') == 'true') {
@@ -55,7 +54,7 @@ Run `ddev exec mtk table list db`. You should see a list of table names. This ve
         }
        }
        ```
-1. `ddev restart`. Your site is now using the `mtk` service instead of `db`. Make sure the site works by running `ddev drush st` (look for _Drupal bootstrap: Successful_). Run `ddev launch` and to verify that a browser request succeeds.
+1. `ddev restart`. Your site is now using the `mtk` service instead of `db`.Verify that the site works by running `ddev drush st` (look for _Drupal bootstrap: Successful_). Run `ddev launch` to verify that a browser request also succeeds.
 1. _Optional_. Omit the standard `db` service since your site no longer uses it. `ddev config --omit-containers db && ddev restart`
 1. Commit the `.ddev` directory and settings.php change to version control so your teammates start using the `mtk` service.
 1. Set up a CI job to refresh your database image on a weekly or nightly basis. The job should push to the same tag every time (e.g. `latest`). 
@@ -68,8 +67,8 @@ Consider speeding up other DB consumers by using the image you published above. 
 
 | Command          | Description                                              |
 |------------------|----------------------------------------------------------|
-| `ddev exec mtk`  | List tables, sanitize tables, dump a database.           |
 | `ddev pulldb`    | Refresh your site's database (i.e. the mtk Docker image) |
+| `ddev exec mtk`  | List tables, sanitize tables, dump a database.           |
 | `ddev sequelace` | Open your site's DB in the Sequel Ace GUI application    |
 | `ddev tableplus` | Open your site's DB in the TablePlus GUI application     |
 
