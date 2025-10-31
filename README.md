@@ -25,16 +25,15 @@ ddev describe
 ```
 Notice that you now have an `mtk` service listed in `ddev describe`. At first, this is an empty and unused placeholder MySQL database image. Read on to learn how you build and publish your site's database image, which will replace the placeholder image.
 
-Run `ddev exec mtk table list db`. You should see a list of table names. This verifies that `mtk` is installed in the web service. 
-
 ## Usage
 
 1. Generate a SQL Dump file. There are two ways to do this:
    1. **Use Drush**. Run `ddev drush sql:dump --skip-tables-tables=cache* > dump.sql` to generate a SQL dump file ([docs](https://www.drush.org/latest/commands/sql_dump/)). 
-   1. **Use MTK**. Create a `mtk.yml` file in the root of your project. It can be empty to start. Eventually, populate it as per the [tutorial](https://mtk.skpr.io/docs/tutorial#configuration-file), for a slimming and sanitization. Run `ddev exec mtk dump db > dump.sql` to generate the SQL dump file.
+   1. **Use MTK**. Create a `mtk.yml` file in the root of your project. It can be empty to start. Eventually, populate it as per the [tutorial](https://mtk.skpr.io/docs/tutorial#configuration-file), for slimming and sanitization. Run `ddev exec mtk dump db > dump.sql` to generate the SQL dump file.
 1. Generate a Docker image with your data inside. Use the `dump.sql` from above when building and pushing your database image to a container registry like [Docker Hub](https://hub.docker.com/) or [Gitlab Container Registry](https://docs.gitlab.com/user/packages/container_registry/). Minimalist docs are in the [database image section of the tutorial](https://mtk.skpr.io/docs/database-image). Here is a build+push command that worked for me `docker buildx build -t cr.lab.example.com/webteam/help/database:latest --provenance=false --platform=linux/arm64,linux/amd64 --push .`.
     - Build the image in a scratch folder thats outside your DDEV project.
     - Remember to push to a _private_ container repository.
+    - [See an example .gitlab-ci.yml file](docs/.gitlab-ci.yml) which fetches a SQL dump from Prod and then nuild and publishes a database image.
 1. Configure your DDEV project to use the published DB image.
    - Append the following to `.ddev/.env.web` (create that file if it doesn't exist). Customize so the creds and DB name match what is in the image that you published. These environment variables are used by `mtk` and by `.ddev/settings.ddev-mtk.php` (see next step):
     ```

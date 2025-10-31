@@ -1,0 +1,68 @@
+#
+# An example of fetching sql, building a database image, and pushing the image to GitLab Container Registry.
+#
+
+# This base job contains incantations required to run Docker in a CI job.
+.docker_base:
+  # This image provides us with the Docker CLI client.
+  image: docker:25.0.5-cli-alpine3.20
+  services:
+    # This service runs the Docker server in a connected container.
+    - name: docker:25.0.5-dind-alpine3.20
+      alias: docker
+  variables:
+    DOCKER_TLS_CERTDIR: "" # Necessary magic
+
+variables:
+  LAGOON_PROJECT: help
+  DUMP_NAME: init.sql
+  DUMP_DIR: ./output
+  DUMP_PATH: $DUMP_DIR/$DUMP_NAME.gz
+
+dump:
+  # -dev suffix needed to get nodejs for `get-production-environment`
+  image: wodby/php:8.3-dev
+  stage: build
+  artifacts:
+    when: on_success
+    expire_in: 1 week
+    paths:
+      - $DUMP_PATH
+  script:
+    # - env
+    # Load our Lagoon key for use by get-backup-url.sh. The key is stored as a group CI/CD variable.
+    - eval $(ssh-agent -s)
+    # Decode as per https://www.dfoley.ie/blog/storing-ssh-private-keys-in-gitlab-cicd-variables
+    - cat "$LAGOON_KEY" | base64 -d > /tmp/tmp_sshprivkey
+    - chmod 600 /tmp/tmp_sshprivkey
+    - ssh-add /tmp/tmp_sshprivkey
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+    - curl -sS --fail -L "https://github.com/uselagoon/lagoon-cli/releases/download/v0.32.1/lagoon-cli-v0.32.1-linux-amd64" -o /usr/local/bin/lagoon && chmod +x /usr/local/bin/lagoon
+    - lagoon login --verbose --force --strict-host-key-checking no
+    # - lagoon whoami --strict-host-key-checking no
+    - PROD_ENV=$(./scripts/get-production-environment)
+    - echo "${PROD_ENV} is the current production environment"
+    - mkdir -p $DUMP_DIR
+    - vendor/bin/drush @${PROD_ENV} sql:dump -v --extra-dump="--no-tablespaces --single-transaction=false" --database=read --structure-tables-list=cache,cache_*,webform_submi*,node_revision__body,flagging,flagging__helpful,search_index,flagging__field_feedback | sed s/utf8mb4_0900_ai_ci/utf8mb4_unicode_ci/g | gzip -f > $DUMP_PATH
+
+build_db_image_and_publish:
+  stage: build
+  extends:
+    - .docker_base
+  needs:
+    - dump
+  before_script:
+    # For debugging
+    # - env
+    # https://docs.gitlab.com/user/packages/container_registry/authenticate_with_container_registry/#use-gitlab-cicd-to-authenticate
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u "$CI_REGISTRY_USER" --password-stdin
+  script:
+    - ls -al .
+    - mv $DUMP_PATH mtk
+    - cd mtk
+    - gunzip ./$DUMP_NAME.gz
+    - docker buildx create --driver docker-container --bootstrap --use
+    # Build and push images
+    - docker buildx build --provenance=false --label org.opencontainers.image.version=$CI_PIPELINE_ID --label org.opencontainers.image.created=$CI_JOB_STARTED_AT --tag $CI_REGISTRY/webteam/help/database:latest --tag $CI_REGISTRY/webteam/help/database:$CI_PIPELINE_ID --platform linux/amd64 --push .
