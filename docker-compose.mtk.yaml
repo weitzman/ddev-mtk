@@ -5,6 +5,8 @@ services:
     container_name: ddev-${DDEV_SITENAME}-mtk
     # See https://mtk.skpr.io/docs/database-image/#build-a-docker-image
     image: ${DDEV_MTK_DOCKER_IMAGE:-mariadb:lts-ubi9}
+    # Fetch a fresh DB anytime this image is deleted (thats infrequent). See pulldb command
+    pull_policy: always
     environment:
       MARIADB_ROOT_PASSWORD: root
     ports:
