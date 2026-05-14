@@ -57,7 +57,7 @@ Notice that you now have an `mtk` service listed in `ddev describe`. At first, t
 1. `ddev restart`. Your site is now using the `mtk` service instead of `db`.Verify that the site works by running `ddev drush st` (look for _Drupal bootstrap: Successful_). Run `ddev launch` to verify that a browser request also succeeds.
 1. _Optional_. Omit the standard `db` service since your site no longer uses it. `ddev config --omit-containers db && ddev restart`
 1. Commit the `.ddev` directory and settings.php change to version control so your teammates start using the `mtk` service.
-1. [Set up a CI job](docs/.gitlab-ci.yml) to refresh your database image on a weekly or nightly basis. The job should push to the same tag every time (e.g. `latest`). 
+1. Set up a CI job [(Gitlab)](docs/.gitlab-ci.yml) [(Github Actions)](docs/database.yml) to refresh your database image on a weekly or nightly basis. The job should push to the same tag every time (e.g. `latest`). 
 
 ## CI, Preview Environments, and more.
 
