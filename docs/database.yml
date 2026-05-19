@@ -4,12 +4,14 @@ on:
   pull_request:
   push:
     branches:
-      - 'feature/*' # Runs for any branch starting with feature/
+      - 'feature/*db-*' # Runs for any well named branch
   workflow_dispatch:
+  schedule:
+    - cron: '35 7 * * *'
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: REPO_NAME/database
+  IMAGE_NAME: EXAMPLE/database
 
 jobs:
   build:
@@ -22,8 +24,8 @@ jobs:
       matrix:
         include:
           - platform: linux/amd64
-            # A custom large runner
-            runner: CUSTOM_large
+            # Use a large runner if needed.
+            runner: ubuntu-24.04
           - platform: linux/arm64
             runner: ubuntu-24.04-arm
     steps:
@@ -44,7 +46,7 @@ jobs:
       - name: Get DB Dump
         run: |
           acli -n auth:login --key="${{ secrets.ACQUIA_API_KEY }}" --secret="${{ secrets.ACQUIA_API_SECRET }}"
-          db_dump=$(acli pull:db meprofilesvc.prod default --no-interaction --no-import | tail -2l | xargs |  sed 's/^.* //')
+          db_dump=$(acli pull:db EXAMPLE.prod default --no-interaction --no-import | tail -2l | xargs |  sed 's/^.* //')
           mv ${db_dump} .github/database/dump.sql.gz
 
       - name: Set up Buildx
@@ -63,7 +65,9 @@ jobs:
         with:
           context: .github/database
           platforms: ${{ matrix.platform }}
-          outputs: type=image,name=${{ env.REGISTRY }}/montefiore-einstein/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
+          outputs: type=image,name=${{ env.REGISTRY }}/EXAMPLE/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
+          provenance: false
+          sbom: false
           cache-from: type=gha,scope=${{ env.PLATFORM_PAIR }}
           cache-to: type=gha,scope=${{ env.PLATFORM_PAIR }},mode=max
 
@@ -111,6 +115,31 @@ jobs:
         working-directory: /tmp/digests
         run: |
           docker buildx imagetools create \
-            --tag ${{ env.REGISTRY }}/montefiore-einstein/${{ env.IMAGE_NAME }}:latest \
-            --tag ${{ env.REGISTRY }}/montefiore-einstein/${{ env.IMAGE_NAME }}:${{ env.DATE }} \
-            $(printf '${{ env.REGISTRY }}/montefiore-einstein/${{ env.IMAGE_NAME }}@sha256:%s ' *)
+            --tag ${{ env.REGISTRY }}/EXAMPLE/${{ env.IMAGE_NAME }}:latest \
+            --tag ${{ env.REGISTRY }}/EXAMPLE/${{ env.IMAGE_NAME }}:${{ env.DATE }} \
+            $(printf '${{ env.REGISTRY }}/EXAMPLE/${{ env.IMAGE_NAME }}@sha256:%s ' *)
+
+  cleanup:
+    needs: merge
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: Delete older tagged database images
+        uses: snok/container-retention-policy@v3.0.1
+        with:
+          account: EXAMPLE
+          token: ${{ secrets.GHCR_DELETE_TOKEN }}
+          image-names: EXAMPLE/database
+          tag-selection: tagged
+          keep-n-most-recent: 30
+          cut-off: 1h
+
+      - name: Delete orphaned untagged database images
+        uses: snok/container-retention-policy@v3.0.1
+        with:
+          account: EXAMPLE
+          token: ${{ secrets.GHCR_DELETE_TOKEN }}
+          image-names: EXAMPLE/database
+          tag-selection: untagged
+          cut-off: 1h

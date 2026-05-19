@@ -75,7 +75,7 @@ Consider speeding up other DB consumers by using the image you published above. 
 ## Workarounds
 
 - Non-functional DDEV commands: 
-  - `export-db`, `import-db`. Use Drush sql commands instead.
+  - `mysql`, `export-db`, `import-db`. Use Drush sql commands instead.
   - `snapshot`. Not usually needed since you can revert your `mtk` Docker service.
 
 ## Credits
