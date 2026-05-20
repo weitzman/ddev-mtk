@@ -17,5 +17,9 @@ services:
       com.ddev.approot: $DDEV_APPROOT
     volumes:
       - mtk:/var/lib/mysql
+    x-ddev:
+      describe-info: |
+        DB name: ${MTK_DATABASE}
+        User/Pass: ${MTK_USERNAME}/${MTK_PASSWORD}
 volumes:
   mtk:
