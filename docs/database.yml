@@ -141,11 +141,11 @@ jobs:
           keep-n-most-recent: 30
           cut-off: 1h
 
-      - name: Delete orphaned untagged database images
-        uses: snok/container-retention-policy@v3.0.1
-        with:
-          account: EXAMPLE
-          token: ${{ secrets.GHCR_DELETE_TOKEN }}
-          image-names: EXAMPLE/database
-          tag-selection: untagged
-          cut-off: 1h
+      # NOTE: Do not add a `tag-selection: untagged` cleanup step here. The
+      # build pushes each platform by digest (push-by-digest=true), so the
+      # per-architecture child manifests are intentionally untagged and are
+      # referenced only by the tagged manifest list. snok/container-retention
+      # -policy has no manifest-list awareness, so an untagged sweep deletes
+      # those children, leaving dated tags pointing at missing content
+      # ("manifest not found" on pull). The tagged step above already bounds
+      # growth of meaningful versions.
