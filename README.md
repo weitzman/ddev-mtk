@@ -65,12 +65,13 @@ Consider speeding up other DB consumers by using the image you published above. 
 
 ## Commands
 
-| Command          | Description                                              |
-|------------------|----------------------------------------------------------|
-| `ddev pulldb`    | Refresh your site's database (i.e. the mtk Docker image) |
-| `ddev exec mtk`  | List tables, sanitize tables, dump a database.           |
-| `ddev sequelace` | Open your site's DB in the Sequel Ace GUI application    |
-| `ddev tableplus` | Open your site's DB in the TablePlus GUI application     |
+| Command          | Description                                           |
+|------------------|-------------------------------------------------------|
+| `ddev resetdb`   | Reset site database (i.e. the mtk Docker image)       |
+| `ddev pulldb`    | Reset and pull database (if a newer one is available) |
+| `ddev exec mtk`  | List tables, sanitize tables, dump a database.        |
+| `ddev sequelace` | Open your site's DB in the Sequel Ace GUI application |
+| `ddev tableplus` | Open your site's DB in the TablePlus GUI application  |
 
 ## Workarounds
 

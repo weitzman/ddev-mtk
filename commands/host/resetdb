@@ -1,0 +1,8 @@
+#!/bin/bash
+
+## ddev-generated
+## Description: Reset DB container.
+## Usage: resetdb
+## Example: "ddev resetdb"
+
+$HOME/.ddev/bin/docker-compose -f .ddev/.ddev-docker-compose-full.yaml down --volumes mtk && ddev restart

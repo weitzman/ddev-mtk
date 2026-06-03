@@ -3,6 +3,7 @@ name: DDEV MTK
 project_files:
   - docker-compose.mtk.yaml
   - commands/host/pulldb
+  - commands/host/resetdb
   - commands/host/sequelace
   - commands/host/tableplus
   - web-build/Dockerfile.mtk
